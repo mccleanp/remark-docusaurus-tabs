@@ -1,114 +1,115 @@
-function tabs() {
-  function renderTabs(tabs, nodes) {
-    function getId(tab) {
-      return nodes[tab.start].data.id;
-    }
+const toString = require("mdast-util-to-string");
+const visit = require("unist-util-visit");
 
-    function getLabel(tab) {
-      return nodes[tab.start].children[0].value;
-    }
+function renderTabs(tabs, nodes) {
+  let tabNodes = [];
 
-    let tabNodes = [];
+  tabNodes.push({
+    type: "jsx",
+    value: `<Tabs>`,
+  });
 
-    tabNodes.push({
-      type: "jsx",
-      value: `<Tabs defaultValue="${getId(tabs[0])}" values={[${tabs
-        .map((tab) => `{label:"${getLabel(tab)}",value:"${getId(tab)}"}`)
-        .join(",")}]}>`,
-    });
-
-    tabs.forEach((tab) => {
-      tabNodes.push({
-        type: "jsx",
-        value: `<TabItem value="${getId(tab)}">`,
-      });
-
-      tabNodes.push(...nodes.slice(tab.start + 1, tab.end));
-
-      tabNodes.push({
-        type: "jsx",
-        value: `</TabItem>`,
-      });
-    });
+  tabs.forEach((tab, id) => {
+    const node = nodes[tab.start];
+    const label = toString(node);
 
     tabNodes.push({
       type: "jsx",
-      value: `</Tabs>`,
+      value: `<TabItem label="${label}" value="tab${id + 1}">`,
     });
 
-    return tabNodes;
-  }
+    tabNodes.push(...nodes.slice(tab.start + 1, tab.end));
 
-  function findTabs(node, index, parent) {
-    const tabs = [];
+    tabNodes.push({
+      type: "jsx",
+      value: `</TabItem>`,
+    });
+  });
 
-    let depth;
+  tabNodes.push({
+    type: "jsx",
+    value: `</Tabs>`,
+  });
 
-    let tab;
-    const { children } = parent;
+  return tabNodes;
+}
 
-    while (++index < children.length) {
-      const child = children[index];
+function findTabs(node, index, parent) {
+  const tabs = [];
 
-      if (child.type === "heading") {
-        if (depth == null) {
-          depth = child.depth;
-        }
+  let depth = null;
 
-        if (child.depth < depth) {
-          tab.end = index;
-          break;
-        }
+  let tab;
+  const { children } = parent;
 
-        if (child.depth === depth) {
-          if (tab) {
-            tab.end = index;
-          }
+  while (++index < children.length) {
+    const child = children[index];
 
-          tab = {};
-          tab.start = index;
-          tab.end = children.length;
-          tabs.push(tab);
-        }
+    if (child.type === "heading") {
+      if (depth == null) {
+        depth = child.depth;
       }
 
-      if (child.type === "comment" && child.value.trim() === "/tabs") {
+      if (child.depth < depth) {
         tab.end = index;
         break;
       }
-    }
 
-    return tabs;
-  }
-
-  return (tree) => {
-    let foundTabs = false;
-
-    const { children } = tree;
-    let index = -1;
-    while (++index < children.length) {
-      const child = children[index];
-      if (child.type === "comment" && child.value.trim() === "tabs") {
-        const tabs = findTabs(child, index, tree);
-        const start = tabs[0].start;
-        const end = tabs[tabs.length - 1].end;
-
-        if (tabs.length > 0) {
-          foundTabs = true;
-          const nodes = renderTabs(tabs, children);
-          children.splice(start, end - start, ...nodes);
-          index += nodes.length;
+      if (child.depth === depth) {
+        if (tab) {
+          tab.end = index;
         }
+
+        tab = {};
+        tab.start = index;
+        tab.end = children.length;
+        tabs.push(tab);
       }
     }
 
-    if (foundTabs) {
-      children.unshift({
+    if (child.type === "comment" && child.value.trim() === "/tabs") {
+      tab.end = index;
+      break;
+    }
+  }
+
+  return tabs;
+}
+
+function tabs() {
+  return (root) => {
+    let foundTabs = false;
+    let alreadyImported = false;
+
+    visit(root, (node, index, parent) => {
+      if (node.type === "import") {
+        if (node.value.includes("@theme/Tabs")) {
+          alreadyImported = true;
+        }
+      } else if (node.type === "comment") {
+        if (node.value.trim() === "tabs") {
+          const tabs = findTabs(node, index, parent);
+          const start = tabs[0].start;
+          const end = tabs[tabs.length - 1].end;
+
+          if (tabs.length > 0) {
+            foundTabs = true;
+            const newChildren = renderTabs(tabs, parent.children);
+            parent.children.splice(start, end - start, ...newChildren);
+
+            return index + newChildren.length;
+          }
+        }
+      }
+    });
+
+    if (foundTabs && !alreadyImported) {
+      root.children.unshift({
         type: "import",
         value: "import TabItem from '@theme/TabItem';",
       });
 
-      children.unshift({
+      root.children.unshift({
         type: "import",
         value: "import Tabs from '@theme/Tabs';",
       });

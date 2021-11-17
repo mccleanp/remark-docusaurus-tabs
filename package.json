@@ -26,10 +26,12 @@
     "index.js"
   ],
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json}\""
   },
   "dependencies": {
-    "unist-util-visit": "^2.0.3"
+    "unist-util-visit": "^2.0.3",
+    "mdast-util-to-string": "^2.0.0"
   },
   "devDependencies": {
     "@mdx-js/mdx": "^1.6.19",
