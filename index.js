@@ -68,7 +68,9 @@ function findTabs(node, index, parent) {
     }
 
     if (child.type === "comment" && child.value.trim() === "/tabs") {
-      tab.end = index;
+      if (tab) {
+        tab.end = index;
+      }
       break;
     }
   }
@@ -89,10 +91,11 @@ function tabs() {
       } else if (node.type === "comment") {
         if (node.value.trim() === "tabs") {
           const tabs = findTabs(node, index, parent);
-          const start = tabs[0].start;
-          const end = tabs[tabs.length - 1].end;
 
           if (tabs.length > 0) {
+            const start = tabs[0].start;
+            const end = tabs[tabs.length - 1].end;
+
             foundTabs = true;
             const newChildren = renderTabs(tabs, parent.children);
             parent.children.splice(start, end - start, ...newChildren);
