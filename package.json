@@ -1,6 +1,6 @@
 {
   "name": "remark-docusaurus-tabs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "remark plugin to transform standard markdown headings to docusaurus(v2) JSX tabs.",
   "author": "Paul McClean <email@paulmcclean.com> (http://paulmcclean.com)",
   "contributors": [
