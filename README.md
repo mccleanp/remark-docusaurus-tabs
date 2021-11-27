@@ -53,7 +53,7 @@ import Tabs from '@theme/Tabs';
 
 import TabItem from '@theme/TabItem';
 
-<Tab>
+<Tabs>
 
 <TabItem label="Apple" value="tab1">
 
