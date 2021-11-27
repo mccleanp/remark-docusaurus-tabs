@@ -2,20 +2,28 @@
 
 [**remark**][https://github.com/remarkjs/remark] plugin to transform standard markdown headings to [**docusaurus**][https://github.com/facebook/docusaurus] (v2) JSX tabs.
 
-> This package expects [`remark-slug`][https://github.com/remarkjs/remark-slug] to be used before it, which is already the case for docusaurus, but may need to be considered if used outside docusaurus.
-
 ## Install
 
 ```sh
 npm install remark-docusaurus-tabs
 ```
 
-Then add it to your site's `docusaurus.config.js` `plugins` option:
+Then add it to your site's `docusaurus.config.js` [`plugins`](https://docusaurus.io/docs/markdown-features/plugins#installing-plugins) option:
 
 ```
 module.exports = {
   // ...
-  plugins: ['remark-docusaurus-tabs'],
+  presets: [
+    [
+      '@docusaurus/preset-classic',
+      {
+        // ...
+        docs: {
+          remarkPlugins: ['remark-docusaurus-tabs'],
+        },
+      },
+    ],
+  ],
 };
 ```
 
@@ -45,21 +53,21 @@ import Tabs from '@theme/Tabs';
 
 import TabItem from '@theme/TabItem';
 
-<Tabs defaultValue="apple" values={[{label:"Apple",value:"apple"},{label:"Orange",value:"orange"},{label:"Banana",value:"banana"}]}>
+<Tabs>
 
-<TabItem value="apple">
+<TabItem label="Apple" value="tab1">
 
 This is an apple 🍎
 
 </TabItem>
 
-<TabItem value="orange">
+<TabItem label="Orange" value="tab2">
 
 This is an orange 🍊
 
 </TabItem>
 
-<TabItem value="banana">
+<TabItem label="Banana" value="tab3">
 
 This is a banana 🍌
 
